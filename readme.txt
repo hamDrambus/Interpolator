@@ -1,0 +1,1 @@
+This is a project for the LAr parameters interpolation I wrote for garfield++ transparency project (summer 2017). It contains Interpolator class and useful strtoken function (strtk) for word by word extraction.
