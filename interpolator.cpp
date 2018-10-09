@@ -13,7 +13,7 @@ point::point(double x, double y)
 	this->y = y;
 }
 
-interpolator::interpolator() :isCached(false), use_out_value(false)
+interpolator::interpolator() :isCached(false), use_out_value(false), out_value(0), cache_nx_from(0), cache_nx_to(0), order(0)
 {}
 
 interpolator::interpolator(std::vector < double> xx, std::vector<double> yy, int ord, int ordered) : interpolator()
@@ -33,14 +33,18 @@ void interpolator::initialize(std::vector < double> xx, std::vector<double> yy, 
 	{
 		auto i = xx.rbegin();
 		auto j = yy.rbegin();
-		for (; (i != xx.rend() && (j != yy.rend())); ++i, ++j)
+		auto i_rend = xx.rend();
+		auto j_rend = yy.rend();
+		for (; (i != i_rend && (j != j_rend)); ++i, ++j)
 			ps.push_back(point(*i, *j));
 		order = (ord + 1) < ps.size() ? ord : ps.size() - 1;
 		return;
 	}
 	auto i = xx.begin();
 	auto j = yy.begin();
-	for (; (i != xx.end() && (j != yy.end())); ++i, ++j)
+	auto i_end = xx.end();
+	auto j_end = yy.end();
+	for (; (i != i_end && (j != j_end)); ++i, ++j)
 		ps.push_back(point(*i, *j));
 	if (1 != ordered)
 		std::sort(ps.begin(), ps.end(), point_sorter);
@@ -71,7 +75,7 @@ double interpolator::operator()(double point)
 	get_indices(point, n_min, n_max);
 	if (isCached)
 		if ((n_min == cache_nx_from) && (n_max == cache_nx_to))
-			return calculate(point); //same polynom is used
+			return calculate(point); //same polynomial is used
 	cache_nx_from = n_min;
 	cache_nx_to = n_max;
 	isCached = true;
@@ -94,8 +98,8 @@ void interpolator::get_indices(double x, int &n_min, int &n_max)
 		return;
 	}
 	int out_ = 0;
-	while ((x > ps[out_].x) && (x > ps[out_+1].x)) out_++;
-	n_min = out_ - order / 2; //assymetrical interpolation in the case of odd order.
+	while ((x > ps[out_].x) && (x > ps[out_+1].x)) ++out_;
+	n_min = out_ - order / 2; //asymmetrical interpolation in the case of odd order.
 	n_max = n_min + order;
 	if (n_min < 0)
 	{
